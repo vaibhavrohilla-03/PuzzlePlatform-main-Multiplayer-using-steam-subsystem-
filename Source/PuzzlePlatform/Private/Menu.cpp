@@ -77,7 +77,7 @@ void UMenu::SwitchWidget()
 }
 void UMenu::JoinServer()
 {	
-	const FString Address = IPTextField->GetText().ToString();
-
+	
+	FString Address = MenuInterface->GetServerName();
 	MenuInterface->Join(Address);
 }

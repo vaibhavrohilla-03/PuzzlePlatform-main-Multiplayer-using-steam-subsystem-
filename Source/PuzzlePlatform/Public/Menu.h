@@ -21,6 +21,11 @@ public:
 
 	void RemoveMenu();
 
+	UPROPERTY()
+		class UTextBlock* ServerName; 
+	UPROPERTY(meta = (BindWidget))
+		class UPanelWidget* IPScrollBox;
+
 protected:
 
 	virtual bool Initialize() override;
@@ -48,8 +53,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 		class UWidget* JoinGameMenu;
 
-	UPROPERTY(meta = (BindWidget))
-		class UEditableTextBox* IPTextField;
+	
 
 	UFUNCTION()
 		void HostServer();
@@ -61,5 +65,4 @@ private:
 
 	UFUNCTION()
 		void JoinServer();
-
 };

@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "OnlineSubsystem.h"
 #include "MenuSystemInterface.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "MyGameInstance.generated.h"
 
 /**
@@ -26,6 +28,11 @@ public:
 	UFUNCTION(Exec)
 		void Join(const FString& Address);
 
+	UFUNCTION()
+		FString GetServerName();
+			
+
+
 	UFUNCTION(BlueprintCallable)
 		void CreateQuitMenu();
 
@@ -39,13 +46,29 @@ private:
 
 	TSubclassOf<UUserWidget> MenuBPClass;
 	TSubclassOf<UUserWidget> QuitMenuBPClass;
+	TSubclassOf<UUserWidget> ServerNameBPClass;
+
 
 	class UQuitMenu* QuitWidget;
 	class UMenu* MenuWidget;
-	
+	class USessionNameTextWidget* ServerNameWidget;
 
 	UFUNCTION(BlueprintCallable)
 	void LoadMenu();
 
+	void OnCreateSessionComplete(FName SessionName, bool Success);
+	void OnDestroySessionComplete(FName SessionName, bool Success);
+	void OnFindSessionsComplete(bool Success);
+
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+		
+
+	IOnlineSessionPtr onlinesession;
+
+	TSharedPtr<class FOnlineSessionSearch> sessionsearch;
+
+	void createsession();
+
+	void CreateServerNameWidget();
 
 };
