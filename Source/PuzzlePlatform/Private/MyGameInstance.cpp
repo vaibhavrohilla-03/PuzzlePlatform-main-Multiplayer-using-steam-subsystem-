@@ -2,7 +2,6 @@
 
 
 #include "MyGameInstance.h"
-#include "Blueprint/UserWidget.h"
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
 #include "Menu.h"
@@ -40,21 +39,16 @@ void UMyGameInstance::Init()
 	UE_LOG(LogTemp, Warning, TEXT("Init Called"));
 	
 
-	IOnlineSubsystem* onlinesubsystem = IOnlineSubsystem::Get();
+	IOnlineSubsystem* Myonlinesubsystem = IOnlineSubsystem::Get();
 
-	onlinesession = onlinesubsystem->GetSessionInterface();
+	onlinesession = Myonlinesubsystem->GetSessionInterface();
 
 	onlinesession->OnCreateSessionCompleteDelegates.AddUObject(this, &UMyGameInstance::OnCreateSessionComplete);
 	onlinesession->OnDestroySessionCompleteDelegates.AddUObject(this, &UMyGameInstance::OnDestroySessionComplete);
 	onlinesession->OnFindSessionsCompleteDelegates.AddUObject(this, &UMyGameInstance::OnFindSessionsComplete);
 	onlinesession->OnJoinSessionCompleteDelegates.AddUObject(this, &UMyGameInstance::OnJoinSessionComplete);
 	
-	sessionsearch = MakeShareable<FOnlineSessionSearch>(new FOnlineSessionSearch());
-	if (sessionsearch.IsValid())
-	{	
-		sessionsearch->bIsLanQuery = true;
-		onlinesession->FindSessions(0, sessionsearch.ToSharedRef());
-	}
+	
 }
 
 
@@ -94,7 +88,7 @@ void UMyGameInstance::CreateServerNameWidget()
 	ServerNameWidget = CreateWidget<USessionNameTextWidget>(this, *ServerNameBPClass, *ServerNameBPClass->GetName());
 }
 
-void UMyGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
+void UMyGameInstance::OnCreateSessionComplete(FName SessionName, bool Success) 
 {
 	GEngine->AddOnScreenDebugMessage(0, 7.0f, FColor::Red, TEXT("Hosting"));
 
@@ -112,12 +106,11 @@ void UMyGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
 
 	if (!(world->ServerTravel(MapURL)))
 	{
-
-		GEngine->AddOnScreenDebugMessage(-1, 7.0f, FColor::Red, TEXT("NotWorking"));
+		// do nothing 
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 7.0f, FColor::Red, TEXT("Working"));
+		UE_LOG(LogTemp, Warning, TEXT("Session is Created, Removed menu and new map loadedd"));
 
 		if (MenuWidget != nullptr)
 		{
@@ -140,14 +133,16 @@ void UMyGameInstance::OnFindSessionsComplete(bool success)
 {
 	if (success && sessionsearch.IsValid())
 	{
+		uint32 i = 0;
 		for (FOnlineSessionSearchResult& results : sessionsearch->SearchResults)
 		{
 			FString tempString = results.GetSessionIdStr();
 			FText tempText = FText::FromString(tempString);
 			CreateServerNameWidget();
 			ServerNameWidget->ServerName->SetText(tempText);
-			MenuWidget->IPScrollBox->AddChild(ServerNameWidget->ServerName); 
-
+			MenuWidget->IPScrollBox->AddChild(ServerNameWidget); 
+			ServerNameWidget->setbuttonindex(i);
+			++i;
 		}
 	}
 }
@@ -166,21 +161,19 @@ void UMyGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCom
 		MenuWidget->RemoveMenu();
 	}
 }
-FString UMyGameInstance::GetServerName()
-{
-	return ServerNameWidget->ServerName->GetText().ToString();
-}
-
 void UMyGameInstance::createsession()
 {
 	FOnlineSessionSettings sessionsettings = FOnlineSessionSettings();
 
-	sessionsettings.bIsLANMatch = true;
+	sessionsettings.bIsLANMatch = false;
 	sessionsettings.NumPublicConnections = 2;
 	sessionsettings.bShouldAdvertise = true;
-	onlinesession->CreateSession(0, SESSION_NAME, sessionsettings);
-}
+	sessionsettings.bUsesPresence = true;
+	sessionsettings.bUseLobbiesIfAvailable = true;
 
+	onlinesession->CreateSession(0, SESSION_NAME, sessionsettings);
+	
+}
 
 void UMyGameInstance::Host()
 {	
@@ -204,13 +197,29 @@ void UMyGameInstance::Host()
 	
 }
 
-
-void UMyGameInstance::Join(const FString& Address)
+void UMyGameInstance::Join()
 {
-	GEngine->AddOnScreenDebugMessage(0, 7.0f, FColor::Red, FString::Printf(TEXT("Joining : %s"),*Address));
-
-	onlinesession->JoinSession(0, SESSION_NAME, sessionsearch->SearchResults[0]);
-
+	GEngine->AddOnScreenDebugMessage(0, 7.0f, FColor::Red, FString::Printf(TEXT("Joining")));
+	if (selectedindex == 0)
+	{
+		onlinesession->JoinSession(0, SESSION_NAME, sessionsearch->SearchResults[0]);
+	}
+	else
+	{
+		onlinesession->JoinSession(0, SESSION_NAME, sessionsearch->SearchResults[selectedindex]);
+	}
 	
 
+}
+
+void UMyGameInstance::FindSessions()
+{
+	sessionsearch = MakeShareable<FOnlineSessionSearch>(new FOnlineSessionSearch());
+	if (sessionsearch.IsValid())
+	{
+		//->bIsLanQuery = true;
+		sessionsearch->MaxSearchResults = 100;
+		sessionsearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+		onlinesession->FindSessions(0, sessionsearch.ToSharedRef());
+	}
 }

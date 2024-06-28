@@ -26,11 +26,15 @@ public:
 	UPROPERTY(meta = (BindWidget))
 		class UPanelWidget* IPScrollBox;
 
+	//TOptional<uint32> SelectedIndex;
+
 protected:
 
 	virtual bool Initialize() override;
 
 private:
+
+	
 
 	UPROPERTY(meta = (BindWidget))
 		class UButton* Host;
@@ -65,4 +69,12 @@ private:
 
 	UFUNCTION()
 		void JoinServer();
+
+	/*UFUNCTION()
+	uint32 GetSelectedIndex();*/
+
+	/*UFUNCTION()
+		void SetIndex(uint32 SelectedIndexP);*/
+
+
 };

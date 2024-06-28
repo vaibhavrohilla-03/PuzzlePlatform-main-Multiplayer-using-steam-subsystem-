@@ -64,7 +64,7 @@ void UMenu::SwitchWidget()
 	if (tempWidget->GetName() == MainMenu->GetName())
 	{
 		Menuswitcher->SetActiveWidget(JoinGameMenu);
-		
+		MenuInterface->FindSessions();
 		return;
 	}
 	else
@@ -74,10 +74,25 @@ void UMenu::SwitchWidget()
 	}
 	
 	
+	
 }
 void UMenu::JoinServer()
 {	
 	
-	FString Address = MenuInterface->GetServerName();
-	MenuInterface->Join(Address);
+	MenuInterface->Join();
 }
+
+/*uint32 UMenu::GetSelectedIndex()
+{
+	if (SelectedIndex.IsSet())
+	{
+		return SelectedIndex.GetValue();
+	}
+}*/
+
+
+/*void UMenu::SetIndex(uint32 SelectedIndexP)
+{
+	SelectedIndex = SelectedIndexP;
+}
+*/

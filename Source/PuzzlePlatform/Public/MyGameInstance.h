@@ -26,16 +26,12 @@ public:
 		void Host();
 
 	UFUNCTION(Exec)
-		void Join(const FString& Address);
-
-	UFUNCTION()
-		FString GetServerName();
-			
-
+		void Join();
 
 	UFUNCTION(BlueprintCallable)
 		void CreateQuitMenu();
 
+	uint32 selectedindex = 0;
 	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
@@ -68,6 +64,8 @@ private:
 	TSharedPtr<class FOnlineSessionSearch> sessionsearch;
 
 	void createsession();
+
+	void FindSessions();
 
 	void CreateServerNameWidget();
 
