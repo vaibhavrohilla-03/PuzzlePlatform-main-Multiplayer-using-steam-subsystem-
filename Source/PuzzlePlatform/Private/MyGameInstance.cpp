@@ -131,9 +131,12 @@ void UMyGameInstance::OnDestroySessionComplete(FName SessionName, bool Success)
 
 void UMyGameInstance::OnFindSessionsComplete(bool success)
 {
+	FString SuccessMessage = success ? TEXT("true") : TEXT("false");
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Session search completed: %s"), *SuccessMessage));
+
 	if (success && sessionsearch.IsValid())
 	{
-		uint32 i = 0;
+		int i = 0;
 		for (FOnlineSessionSearchResult& results : sessionsearch->SearchResults)
 		{
 			FString tempString = results.GetSessionIdStr();
@@ -143,7 +146,14 @@ void UMyGameInstance::OnFindSessionsComplete(bool success)
 			MenuWidget->IPScrollBox->AddChild(ServerNameWidget); 
 			ServerNameWidget->setbuttonindex(i);
 			++i;
+			FString DebugMessage = FString::Printf(TEXT("Session added on index %d"), i);
+			GEngine->AddOnScreenDebugMessage(-1, 7.0f, FColor::Red, DebugMessage);
+
 		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(0, 7.0f, FColor::Red, TEXT(" No session was found "));
 	}
 }
 
@@ -166,10 +176,12 @@ void UMyGameInstance::createsession()
 	FOnlineSessionSettings sessionsettings = FOnlineSessionSettings();
 
 	sessionsettings.bIsLANMatch = false;
-	sessionsettings.NumPublicConnections = 2;
+	sessionsettings.NumPublicConnections = 20;
 	sessionsettings.bShouldAdvertise = true;
 	sessionsettings.bUsesPresence = true;
 	sessionsettings.bUseLobbiesIfAvailable = true;
+	sessionsettings.Set(SEARCH_KEYWORDS, FString("MyUniqueKeyword"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+
 
 	onlinesession->CreateSession(0, SESSION_NAME, sessionsettings);
 	
@@ -217,9 +229,13 @@ void UMyGameInstance::FindSessions()
 	sessionsearch = MakeShareable<FOnlineSessionSearch>(new FOnlineSessionSearch());
 	if (sessionsearch.IsValid())
 	{
-		//->bIsLanQuery = true;
+		sessionsearch->bIsLanQuery = false;
 		sessionsearch->MaxSearchResults = 100;
 		sessionsearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+		sessionsearch->QuerySettings.Set(SEARCH_KEYWORDS, FString("MyUniqueKeyword"), EOnlineComparisonOp::In);
 		onlinesession->FindSessions(0, sessionsearch.ToSharedRef());
+		GEngine->AddOnScreenDebugMessage(0, 7.0f, FColor::Red, TEXT("session search starting"));
 	}
+
+	
 }
